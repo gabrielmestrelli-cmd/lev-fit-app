@@ -52,9 +52,20 @@ export default function App() {
          setOrders(formattedOrders);
       }
 
-      setTestimonials(INITIAL_TESTIMONIALS);
-      setPromotions(INITIAL_PROMOTIONS);
-      setProfile(INITIAL_PROFILE);
+      // Fetch profile
+      const { data: profileData } = await supabase.from('store_profile').select('*').eq('id', 1).single();
+      if (profileData) {
+        setProfile({
+          name: profileData.name || INITIAL_PROFILE.name,
+          instagram: profileData.instagram_url || INITIAL_PROFILE.instagram,
+          phone: profileData.phone || INITIAL_PROFILE.phone,
+          bio: profileData.description || INITIAL_PROFILE.bio,
+          stats: INITIAL_PROFILE.stats, // Stats are static for now or can be added to DB later
+          isOpen: true
+        });
+      } else {
+        setProfile(INITIAL_PROFILE);
+      }
     };
 
     fetchSupabaseData();
@@ -74,6 +85,15 @@ export default function App() {
     }
     if (newProducts.length > 0) {
       await supabase.from('products').upsert(newProducts);
+    }
+    if (newProfile) {
+      await supabase.from('store_profile').upsert({
+        id: 1,
+        name: newProfile.name,
+        instagram_url: newProfile.instagram,
+        phone: newProfile.phone,
+        description: newProfile.bio
+      });
     }
   };
 
